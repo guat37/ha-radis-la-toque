@@ -1,0 +1,11 @@
+# Keep source files consistent across Windows/Linux/macOS
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
