@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+.DS_Store
+.vscode/
+.idea/
+coverage.xml
+.coverage
+htmlcov/
+# Real PDF test corpora are intentionally not committed
+*.pdf

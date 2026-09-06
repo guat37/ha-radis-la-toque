@@ -1,0 +1,6 @@
+aiohttp
+beautifulsoup4==4.13.5
+pypdf==6.0.0
+pdfplumber==0.11.9
+reportlab
+pytest

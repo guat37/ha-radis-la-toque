@@ -1,0 +1,46 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Cette cantine est déjà configurée.",
+      "invalid_restaurant": "La cantine sélectionnée n'est plus disponible."
+    },
+    "error": {
+      "cannot_connect": "Impossible de joindre Radis la Toque.",
+      "cannot_parse": "La page de la cantine n'a pas pu être interprétée.",
+      "no_restaurants": "Aucune cantine ne correspond à cette recherche."
+    },
+    "step": {
+      "user": {
+        "title": "Trouver la cantine",
+        "description": "Recherchez par ville, code postal ou nom d'établissement.",
+        "data": {
+          "search": "Recherche"
+        }
+      },
+      "restaurant": {
+        "title": "Choisir la cantine",
+        "data": {
+          "restaurant": "Cantine"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "today": {
+        "name": "Menu aujourd'hui"
+      },
+      "next": {
+        "name": "Prochain menu"
+      },
+      "week": {
+        "name": "Menu de la semaine"
+      }
+    },
+    "calendar": {
+      "menus": {
+        "name": "Menus de la cantine"
+      }
+    }
+  }
+}

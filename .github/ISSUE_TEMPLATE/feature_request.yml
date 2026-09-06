@@ -1,0 +1,15 @@
+name: Feature request
+description: Proposer une amélioration
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin
+      description: Décrivez l'usage à couvrir plutôt qu'une implémentation imposée.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposition éventuelle

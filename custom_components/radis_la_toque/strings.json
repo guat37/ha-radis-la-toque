@@ -1,0 +1,46 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "This canteen is already configured.",
+      "invalid_restaurant": "The selected canteen is no longer available."
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to Radis la Toque.",
+      "cannot_parse": "The canteen page could not be interpreted.",
+      "no_restaurants": "No canteen matches this search."
+    },
+    "step": {
+      "user": {
+        "title": "Find the canteen",
+        "description": "Search by town, postal code or school name.",
+        "data": {
+          "search": "Search"
+        }
+      },
+      "restaurant": {
+        "title": "Choose the canteen",
+        "data": {
+          "restaurant": "Canteen"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "today": {
+        "name": "Today's menu"
+      },
+      "next": {
+        "name": "Next menu"
+      },
+      "week": {
+        "name": "Week menu"
+      }
+    },
+    "calendar": {
+      "menus": {
+        "name": "Canteen menus"
+      }
+    }
+  }
+}

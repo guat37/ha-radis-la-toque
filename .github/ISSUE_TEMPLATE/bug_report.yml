@@ -1,0 +1,41 @@
+name: Bug report
+description: Signaler un problème avec un établissement, un menu ou la carte
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Merci de joindre les diagnostics Home Assistant si possible. Ne publiez pas de secrets ou données privées.
+  - type: input
+    id: ha_version
+    attributes:
+      label: Version Home Assistant
+    validations:
+      required: true
+  - type: input
+    id: integration_version
+    attributes:
+      label: Version Radis la Toque
+    validations:
+      required: true
+  - type: input
+    id: establishment
+    attributes:
+      label: Établissement / code Rxxxxx
+      description: Le nom d'un établissement public est acceptable. Le code Rxxxxx est préférable.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème observé
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Résultat attendu
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / diagnostics utiles
+      render: text
