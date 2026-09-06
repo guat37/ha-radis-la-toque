@@ -1,21 +1,21 @@
 {
+  "domain": "radis_la_toque",
+  "name": "Radis la Toque",
   "codeowners": [
     "@guat37"
   ],
   "config_flow": true,
+  "dependencies": [
+    "http"
+  ],
   "documentation": "https://github.com/guat37/ha-radis-la-toque",
-  "domain": "radis_la_toque",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/guat37/ha-radis-la-toque/issues",
-  "name": "Radis la Toque",
   "requirements": [
     "beautifulsoup4==4.13.5",
-    "pypdf==6.0.0",
-    "pdfplumber==0.11.9"
+    "pdfplumber==0.11.9",
+    "pypdf==6.0.0"
   ],
-  "version": "0.4.0-beta.1",
-  "dependencies": [
-    "http"
-  ]
+  "version": "0.4.0-beta.1"
 }
