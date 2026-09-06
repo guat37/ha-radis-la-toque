@@ -23,6 +23,7 @@ from .parser import (
     parse_listing_page,
     select_menu_parse,
     parse_restaurant_page,
+    restaurant_id_from_url,
 )
 
 @dataclass(slots=True)
@@ -147,6 +148,15 @@ class RadisLaToqueClient:
 
     async def async_resolve_restaurant(self, restaurant: Restaurant) -> Restaurant:
         return parse_restaurant_page(await self._get_text(restaurant.page_url), restaurant)
+
+    async def async_resolve_code(self, page_url: str) -> str:
+        """Resolve the current volatile Rxxxxx menu code from a stable fiche URL."""
+        restaurant_id_from_url(page_url)  # validate stable fiche URL early
+        html = await self._get_text(page_url)
+        match = re.search(r"/restaurants/(?P<code>R\d+)", html, re.I)
+        if not match:
+            raise RestaurantNotFound("restaurant_code_not_found")
+        return match.group("code").upper()
 
     async def async_validate_restaurant(self, code: str) -> None:
         html = await self._get_text(RESTAURANT_URL.format(code=code))

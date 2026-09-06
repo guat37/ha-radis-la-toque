@@ -11,6 +11,6 @@
 - [ ] installation HACS testée sur une instance propre
 - [ ] ajout d'un établissement testé
 - [ ] calendrier testé
-- [ ] carte Lovelace testée après ajout de la ressource
+- [ ] carte Lovelace testée sans ressource manuelle
 - [ ] diagnostics vérifiés (aucun secret)
 - [ ] changelog/release notes à jour

@@ -5,6 +5,8 @@ DOMAIN = "radis_la_toque"
 PLATFORMS = ["sensor", "calendar"]
 
 CONF_RESTAURANT_CODE = "restaurant_code"
+CONF_RESTAURANT_ID = "restaurant_id"
+CONF_ENTITY_PREFIX = "entity_prefix"
 CONF_RESTAURANT_NAME = "restaurant_name"
 CONF_RESTAURANT_URL = "restaurant_url"
 CONF_RESTAURANT_CITY = "restaurant_city"
@@ -20,7 +22,7 @@ DEFAULT_UPDATE_INTERVAL = timedelta(hours=12)
 REQUEST_TIMEOUT = 20
 MAX_CATALOG_PAGES = 120
 CATALOG_CONCURRENCY = 8
-INTEGRATION_VERSION = "0.4.0-beta.1"
+INTEGRATION_VERSION = "0.4.0-beta.2"
 FRONTEND_URL_BASE = "/radis_la_toque"
 FRONTEND_CARD_FILENAME = "radis-la-toque-card.js"
 USER_AGENT = (

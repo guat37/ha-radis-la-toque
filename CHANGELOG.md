@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0-beta.2
+
+### Fixed
+- identité des établissements basée sur l'identifiant stable de la fiche `entry-xxxx` au lieu du code de menu `Rxxxxx` ;
+- résolution automatique du code `Rxxxxx` courant à chaque cycle de mise à jour ;
+- migration transparente des entrées existantes sans renommer les entités ni recréer les appareils ;
+- carte Lovelace chargée automatiquement par l'intégration, sans ressource manuelle.
+
+### Regression coverage
+- test dédié à la rotation de code observée sur Saint-Étienne-de-Chigny (`R03436` historique → `R03803` courant) ;
+- validation des deux corpus réels de 10 établissements : 20/20 réponses gérées ;
+- test de migration v1 → v2 et test d'auto-chargement frontend.
+
 ## 0.4.0-beta.1
 
 ### Added

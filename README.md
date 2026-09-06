@@ -36,13 +36,9 @@ Tant que le dépôt n'est pas encore référencé par défaut dans HACS :
 
 ### Carte Lovelace intégrée
 
-Le JavaScript de la carte est livré **dans le même package HACS** que l'intégration. Après avoir configuré au moins un établissement, ajouter une ressource Lovelace de type **Module JavaScript** :
+Le JavaScript de la carte est livré **dans le même package HACS** que l'intégration et chargé automatiquement au démarrage de Home Assistant. Aucune ressource Lovelace manuelle n'est nécessaire.
 
-```text
-/radis_la_toque/radis-la-toque-card.js?v=0.4.0-beta.1
-```
-
-Puis ajouter une carte manuelle :
+Ajouter simplement une carte :
 
 ```yaml
 type: custom:radis-la-toque-card
@@ -51,7 +47,7 @@ compact: true
 default_day: smart
 ```
 
-La carte apparaît également dans le sélecteur de cartes une fois la ressource chargée.
+La carte apparaît également dans le sélecteur de cartes après le redémarrage de Home Assistant.
 
 ## Entités
 

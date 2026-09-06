@@ -42,7 +42,7 @@ class RadisLaToqueCalendar(RadisLaToqueEntity, CalendarEntity):
 
     def __init__(self, coordinator: RadisLaToqueCoordinator) -> None:
         super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.code}_calendar"
+        self._attr_unique_id = f"{coordinator.entity_prefix}_calendar"
 
     @property
     def event(self) -> CalendarEvent | None:

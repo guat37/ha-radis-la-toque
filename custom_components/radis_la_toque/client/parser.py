@@ -14,6 +14,7 @@ MONTHS = {"janvier":1,"fevrier":2,"mars":3,"avril":4,"mai":5,"juin":6,"juillet":
 DATE_RE = re.compile(r"(?im)\b(?P<weekday>lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b\s*(?:[-:–—]?\s*)?(?P<day>\d{1,2})(?:er)?\s+(?P<month>[A-Za-zÀ-ÿ]+)(?:\s+(?P<year>20\d{2}))?")
 CODE_RE = re.compile(r"/restaurants/(?P<code>R\d+)", re.I)
 ENTRY_RE = re.compile(r"/les-menus-de-la-cantine/liste-des-restaurants/entry-", re.I)
+ENTRY_ID_RE = re.compile(r"/entry-(?P<id>\d+)(?:-|\.html|/|$)", re.I)
 POSTAL_RE = re.compile(r"\b(?P<postal>\d{5})\b")
 
 CATEGORY_ALIASES = {
@@ -141,6 +142,18 @@ def infer_last_catalog_page(html: str) -> int:
     if last_candidates:
         return max(last_candidates)
     return max(all_pages, default=1)
+
+
+def restaurant_id_from_url(url: str) -> str:
+    """Return the stable CMS entry identifier for a restaurant fiche URL.
+
+    The public ``Rxxxxx`` menu code is not stable: RESTORIA can rotate it while
+    the restaurant fiche (``entry-1234-...``) remains the same.
+    """
+    match = ENTRY_ID_RE.search(url)
+    if not match:
+        raise RestaurantNotFound("restaurant_entry_id_not_found")
+    return f"entry-{match.group('id')}"
 
 def parse_restaurant_page(html: str, restaurant: Restaurant) -> Restaurant:
     code_match = CODE_RE.search(html)

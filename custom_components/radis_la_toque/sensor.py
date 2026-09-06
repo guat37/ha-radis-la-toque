@@ -75,7 +75,7 @@ class RadisLaToqueMenuSensor(RadisLaToqueEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = f"{coordinator.code}_{description.key}"
+        self._attr_unique_id = f"{coordinator.entity_prefix}_{description.key}"
 
     @property
     def native_value(self) -> date | None:
@@ -99,7 +99,7 @@ class RadisLaToqueWeekSensor(RadisLaToqueEntity, SensorEntity):
 
     def __init__(self, coordinator: RadisLaToqueCoordinator) -> None:
         super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.code}_week"
+        self._attr_unique_id = f"{coordinator.entity_prefix}_week"
 
     @property
     def native_value(self) -> date | None:
