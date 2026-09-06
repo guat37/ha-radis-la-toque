@@ -227,11 +227,161 @@ class RadisLaToqueCard extends HTMLElement {
     const entity = Object.keys(hass?.states || {}).find(
       (id) => id.startsWith("sensor.") && id.endsWith("_menu_de_la_semaine")
     );
-    return entity ? { entity } : {};
+    return entity ? {
+      entity,
+      title: "",
+      show_header: true,
+      show_school_name: true,
+      show_week: true,
+      show_empty_categories: false,
+      compact: false,
+      show_semantic_badges: true,
+      show_redundant_badges: false,
+      default_day: "smart",
+      categories: [...DEFAULT_CATEGORIES],
+    } : {};
   }
 
-  static getConfigElement() {
-    return document.createElement("radis-la-toque-card-editor");
+  static getConfigForm() {
+    const categoryOptions = CATEGORY_META.map(([value, label, icon]) => ({
+      value,
+      label: `${icon} ${label}`,
+    }));
+
+    return {
+      schema: [
+        {
+          name: "entity",
+          required: true,
+          selector: {
+            entity: {
+              filter: {
+                domain: "sensor",
+                integration: "radis_la_toque",
+              },
+            },
+          },
+        },
+        {
+          type: "expandable",
+          name: "header_options",
+          title: "En-tête",
+          flatten: true,
+          schema: [
+            { name: "show_header", selector: { boolean: {} } },
+            { name: "show_school_name", selector: { boolean: {} } },
+            { name: "show_week", selector: { boolean: {} } },
+            { name: "title", selector: { text: {} } },
+          ],
+        },
+        {
+          type: "expandable",
+          name: "display_options",
+          title: "Affichage",
+          flatten: true,
+          schema: [
+            {
+              name: "default_day",
+              selector: {
+                select: {
+                  mode: "dropdown",
+                  options: [
+                    { value: "smart", label: "Intelligent (aujourd’hui, sinon prochain)" },
+                    { value: "today", label: "Aujourd’hui, sinon prochain" },
+                    { value: "next", label: "Prochain repas" },
+                    { value: "first", label: "Premier jour de la semaine" },
+                  ],
+                },
+              },
+            },
+            { name: "compact", selector: { boolean: {} } },
+            { name: "show_semantic_badges", selector: { boolean: {} } },
+            { name: "show_redundant_badges", selector: { boolean: {} } },
+            { name: "show_empty_categories", selector: { boolean: {} } },
+          ],
+        },
+        {
+          type: "expandable",
+          name: "category_options",
+          title: "Catégories affichées",
+          flatten: true,
+          schema: [
+            {
+              name: "categories",
+              selector: {
+                select: {
+                  multiple: true,
+                  mode: "dropdown",
+                  options: categoryOptions,
+                },
+              },
+            },
+          ],
+        },
+      ],
+      computeLabel: (schema) => {
+        const labels = {
+          entity: "Menu de la semaine",
+          show_header: "Afficher l’en-tête",
+          show_school_name: "Afficher le nom de l’établissement",
+          show_week: "Afficher la semaine",
+          title: "Titre personnalisé (optionnel)",
+          default_day: "Jour affiché à l’ouverture",
+          compact: "Mode compact",
+          show_semantic_badges: "Afficher les badges alimentaires",
+          show_redundant_badges: "Afficher aussi les badges redondants",
+          show_empty_categories: "Afficher les catégories vides",
+          categories: "Catégories",
+        };
+        return labels[schema.name];
+      },
+      computeHelper: (schema) => {
+        if (schema.name === "entity") {
+          return "Sélectionnez l’entité « Menu de la semaine » de l’établissement.";
+        }
+        if (schema.name === "title") {
+          return "Laissez vide pour utiliser automatiquement le nom de l’établissement.";
+        }
+        return undefined;
+      },
+      assertConfig: (config) => {
+        if (!config || typeof config !== "object") {
+          throw new Error("Configuration invalide.");
+        }
+        if (typeof config.entity !== "string" || !config.entity) {
+          throw new Error("L’entité « Menu de la semaine » est obligatoire.");
+        }
+        if (config.title !== undefined && typeof config.title !== "string") {
+          throw new Error("Le titre personnalisé doit être du texte.");
+        }
+        if (
+          config.default_day !== undefined &&
+          !DEFAULT_DAY_MODES.has(config.default_day)
+        ) {
+          throw new Error("Mode de jour par défaut invalide.");
+        }
+        if (
+          config.categories !== undefined &&
+          (!Array.isArray(config.categories) ||
+            config.categories.some((item) => !DEFAULT_CATEGORIES.includes(item)))
+        ) {
+          throw new Error("La liste des catégories est invalide.");
+        }
+        for (const key of [
+          "show_header",
+          "show_school_name",
+          "show_week",
+          "show_empty_categories",
+          "compact",
+          "show_semantic_badges",
+          "show_redundant_badges",
+        ]) {
+          if (config[key] !== undefined && typeof config[key] !== "boolean") {
+            throw new Error(`L’option « ${key} » doit être booléenne.`);
+          }
+        }
+      },
+    };
   }
 
   setConfig(config) {
@@ -416,129 +566,7 @@ class RadisLaToqueCard extends HTMLElement {
   }
 }
 
-class RadisLaToqueCardEditor extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-    this._config = {};
-    this._hass = null;
-
-    // Home Assistant exposes global keyboard shortcuts (for example the
-    // Assist shortcut). Keyboard events originating from editable controls
-    // in a custom card editor must not bubble outside the editor, otherwise
-    // typing a title can trigger those global shortcuts.  Do not call
-    // preventDefault(): the input must keep its native editing behaviour.
-    this._stopEditableShortcutPropagation = (event) => {
-      const path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
-      const editable = path.some((node) =>
-        node instanceof HTMLInputElement ||
-        node instanceof HTMLTextAreaElement ||
-        node instanceof HTMLSelectElement ||
-        (node instanceof HTMLElement && node.isContentEditable)
-      );
-      if (editable) event.stopPropagation();
-    };
-    for (const eventName of ["keydown", "keypress", "keyup"]) {
-      this.addEventListener(eventName, this._stopEditableShortcutPropagation);
-    }
-  }
-
-  set hass(hass) { this._hass = hass; this._render(); }
-  setConfig(config) { this._config = { ...config }; this._render(); }
-
-  _emit(patch) {
-    this._config = { ...this._config, ...patch };
-    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
-  }
-
-  _toggleCategory(key, enabled) {
-    const current = normalizeCategories(this._config.categories);
-    let next = enabled ? [...new Set([...current, key])] : current.filter((item) => item !== key);
-    if (!next.length) next = ["main_course"];
-    this._emit({ categories: next });
-  }
-
-  _render() {
-    if (!this.shadowRoot || !this._hass) return;
-    const entities = Object.entries(this._hass.states)
-      .filter(([id, st]) => id.startsWith("sensor.") && (id.endsWith("_menu_de_la_semaine") || Array.isArray(st.attributes?.days)))
-      .sort((a, b) => (a[1].attributes?.friendly_name || a[0]).localeCompare(b[1].attributes?.friendly_name || b[0], "fr"));
-    const categories = normalizeCategories(this._config.categories);
-    const defaultDay = DEFAULT_DAY_MODES.has(this._config.default_day) ? this._config.default_day : "smart";
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        .form { display:grid; gap:16px; padding:8px 0; }
-        .group { display:grid; gap:9px; }
-        .group-title { font-size:.82rem; font-weight:700; color:var(--secondary-text-color); text-transform:uppercase; letter-spacing:.03em; }
-        label { display:grid; gap:6px; font-size:.92rem; }
-        select,input[type="text"] { box-sizing:border-box; width:100%; min-height:44px; padding:8px 10px; font:inherit; color:var(--primary-text-color); background:var(--card-background-color); border:1px solid var(--divider-color); border-radius:8px; }
-        .check { display:flex; align-items:center; gap:10px; min-height:32px; }
-        .check input { width:18px; height:18px; margin:0; }
-        .category-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px 12px; }
-        @media (max-width:520px) { .category-grid { grid-template-columns:1fr; } }
-      </style>
-      <div class="form">
-        <label>Menu de la semaine
-          <select id="entity">
-            <option value="">Sélectionner…</option>
-            ${entities.map(([id, st]) => `<option value="${esc(id)}" ${this._config.entity === id ? "selected" : ""}>${esc(st.attributes?.friendly_name || id)}</option>`).join("")}
-          </select>
-        </label>
-
-        <div class="group">
-          <div class="group-title">En-tête</div>
-          <label class="check"><input id="show_header" type="checkbox" ${this._config.show_header !== false ? "checked" : ""}>Afficher l’en-tête</label>
-          <label class="check"><input id="show_school_name" type="checkbox" ${this._config.show_school_name !== false ? "checked" : ""}>Afficher le nom de l’établissement</label>
-          <label class="check"><input id="show_week" type="checkbox" ${this._config.show_week !== false ? "checked" : ""}>Afficher la semaine</label>
-          <label>Titre personnalisé (optionnel)
-            <input id="title" type="text" value="${esc(this._config.title || "")}" placeholder="Ex. Cantine des enfants">
-          </label>
-        </div>
-
-        <div class="group">
-          <div class="group-title">Affichage</div>
-          <label>Jour affiché à l’ouverture
-            <select id="default_day">
-              <option value="smart" ${defaultDay === "smart" ? "selected" : ""}>Intelligent (aujourd’hui, sinon prochain)</option>
-              <option value="today" ${defaultDay === "today" ? "selected" : ""}>Aujourd’hui, sinon prochain</option>
-              <option value="next" ${defaultDay === "next" ? "selected" : ""}>Prochain repas</option>
-              <option value="first" ${defaultDay === "first" ? "selected" : ""}>Premier jour de la semaine</option>
-            </select>
-          </label>
-          <label class="check"><input id="compact" type="checkbox" ${this._config.compact === true ? "checked" : ""}>Mode compact</label>
-          <label class="check"><input id="show_semantic_badges" type="checkbox" ${this._config.show_semantic_badges !== false ? "checked" : ""}>Afficher les badges alimentaires</label>
-          <label class="check"><input id="show_redundant_badges" type="checkbox" ${this._config.show_redundant_badges === true ? "checked" : ""}>Afficher aussi les badges redondants</label>
-          <label class="check"><input id="show_empty_categories" type="checkbox" ${this._config.show_empty_categories === true ? "checked" : ""}>Afficher les catégories vides</label>
-        </div>
-
-        <div class="group">
-          <div class="group-title">Catégories affichées</div>
-          <div class="category-grid">
-            ${CATEGORY_META.map(([key, label, icon]) => `<label class="check"><input class="cat" data-key="${esc(key)}" type="checkbox" ${categories.includes(key) ? "checked" : ""}>${icon} ${esc(label)}</label>`).join("")}
-          </div>
-        </div>
-      </div>`;
-
-    this.shadowRoot.getElementById("entity")?.addEventListener("change", (e) => this._emit({ entity: e.target.value }));
-    this.shadowRoot.getElementById("title")?.addEventListener("change", (e) => this._emit({ title: e.target.value.trim() }));
-    this.shadowRoot.getElementById("show_header")?.addEventListener("change", (e) => this._emit({ show_header: e.target.checked }));
-    this.shadowRoot.getElementById("show_school_name")?.addEventListener("change", (e) => this._emit({ show_school_name: e.target.checked }));
-    this.shadowRoot.getElementById("show_week")?.addEventListener("change", (e) => this._emit({ show_week: e.target.checked }));
-    this.shadowRoot.getElementById("default_day")?.addEventListener("change", (e) => this._emit({ default_day: e.target.value }));
-    this.shadowRoot.getElementById("compact")?.addEventListener("change", (e) => this._emit({ compact: e.target.checked }));
-    this.shadowRoot.getElementById("show_semantic_badges")?.addEventListener("change", (e) => this._emit({ show_semantic_badges: e.target.checked }));
-    this.shadowRoot.getElementById("show_redundant_badges")?.addEventListener("change", (e) => this._emit({ show_redundant_badges: e.target.checked }));
-    this.shadowRoot.getElementById("show_empty_categories")?.addEventListener("change", (e) => this._emit({ show_empty_categories: e.target.checked }));
-    this.shadowRoot.querySelectorAll(".cat").forEach((box) => {
-      box.addEventListener("change", (e) => this._toggleCategory(e.target.dataset.key, e.target.checked));
-    });
-  }
-}
-
 if (!customElements.get("radis-la-toque-card")) customElements.define("radis-la-toque-card", RadisLaToqueCard);
-if (!customElements.get("radis-la-toque-card-editor")) customElements.define("radis-la-toque-card-editor", RadisLaToqueCardEditor);
-
 window.customCards = window.customCards || [];
 if (!window.customCards.some((card) => card.type === "radis-la-toque-card")) {
   window.customCards.push({
