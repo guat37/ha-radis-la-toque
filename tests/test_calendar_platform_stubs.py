@@ -85,6 +85,7 @@ print("CALENDAR PLATFORM STUB: PASS")
 # Entity behavior: current/next event and date-range filtering use coordinator memory only.
 class Coordinator:
     code = "RTEST"
+    entity_prefix = "entry-test"
     restaurant_name = "Test"
     data = models.WeeklyMenu(
         "RTEST",

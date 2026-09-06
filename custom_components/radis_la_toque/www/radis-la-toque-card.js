@@ -1,4 +1,4 @@
-const RLT_CARD_VERSION = "0.4.0-beta.1";
+const RLT_CARD_VERSION = "0.4.0-beta.3";
 
 const CATEGORY_META = [
   ["starter", "Entrée", "🥗"],
@@ -422,6 +422,25 @@ class RadisLaToqueCardEditor extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._config = {};
     this._hass = null;
+
+    // Home Assistant exposes global keyboard shortcuts (for example the
+    // Assist shortcut). Keyboard events originating from editable controls
+    // in a custom card editor must not bubble outside the editor, otherwise
+    // typing a title can trigger those global shortcuts.  Do not call
+    // preventDefault(): the input must keep its native editing behaviour.
+    this._stopEditableShortcutPropagation = (event) => {
+      const path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
+      const editable = path.some((node) =>
+        node instanceof HTMLInputElement ||
+        node instanceof HTMLTextAreaElement ||
+        node instanceof HTMLSelectElement ||
+        (node instanceof HTMLElement && node.isContentEditable)
+      );
+      if (editable) event.stopPropagation();
+    };
+    for (const eventName of ["keydown", "keypress", "keyup"]) {
+      this.addEventListener(eventName, this._stopEditableShortcutPropagation);
+    }
   }
 
   set hass(hass) { this._hass = hass; this._render(); }

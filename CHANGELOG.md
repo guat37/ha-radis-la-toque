@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0-beta.3
+
+- Corrige les raccourcis clavier Home Assistant déclenchés pendant la saisie dans l’éditeur de la carte Lovelace.
+- Les événements clavier des champs éditables de la carte restent confinés à l’éditeur sans bloquer la saisie native.
+
+
 ## 0.4.0-beta.2
 
 ### Fixed
