@@ -33,8 +33,20 @@
       "next": {
         "name": "Prochain menu"
       },
+      "widget": {
+        "name": "Menu du jour"
+      },
       "week": {
         "name": "Menu de la semaine"
+      },
+      "today_starter": {
+        "name": "Entrée"
+      },
+      "today_main_course": {
+        "name": "Plat"
+      },
+      "today_dessert": {
+        "name": "Dessert"
       }
     },
     "calendar": {

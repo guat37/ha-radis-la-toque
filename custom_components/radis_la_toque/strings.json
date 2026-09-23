@@ -33,8 +33,20 @@
       "next": {
         "name": "Next menu"
       },
+      "widget": {
+        "name": "Daily menu"
+      },
       "week": {
         "name": "Week menu"
+      },
+      "today_starter": {
+        "name": "Starter"
+      },
+      "today_main_course": {
+        "name": "Main course"
+      },
+      "today_dessert": {
+        "name": "Dessert"
       }
     },
     "calendar": {
