@@ -12,7 +12,7 @@ from . import RadisLaToqueConfigEntry
 from .client import DayMenu
 from .client.presentation import menu_description, menu_summary
 from .coordinator import RadisLaToqueCoordinator
-from .entity import RadisLaToqueEntity
+from .entity import RadisLaToqueDateAwareEntity
 
 
 def _as_event(day: DayMenu) -> CalendarEvent:
@@ -34,7 +34,7 @@ async def async_setup_entry(
     async_add_entities([RadisLaToqueCalendar(entry.runtime_data)])
 
 
-class RadisLaToqueCalendar(RadisLaToqueEntity, CalendarEntity):
+class RadisLaToqueCalendar(RadisLaToqueDateAwareEntity, CalendarEntity):
     """Read-only calendar backed by the downloaded school menu."""
 
     _attr_translation_key = "menus"

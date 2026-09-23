@@ -1,6 +1,7 @@
 """DataUpdateCoordinator for Radis la Toque."""
 from __future__ import annotations
 
+from datetime import datetime
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -54,11 +55,17 @@ class RadisLaToqueCoordinator(DataUpdateCoordinator[WeeklyMenu | None]):
         self.restaurant_name = str(entry.data[CONF_RESTAURANT_NAME])
         self.restaurant_url = str(entry.data[CONF_RESTAURANT_URL])
 
+        # Lightweight observability only. These values live in memory and are
+        # exposed through Home Assistant diagnostics; nothing is persisted.
+        self.last_attempt: datetime | None = None
+        self.last_successful_update: datetime | None = None
+        self.last_result: str | None = None
+
     async def _async_resolve_current_code(self) -> str:
         """Resolve and persist the current volatile Rxxxxx code.
 
         RESTORIA rotates menu codes independently of the stable restaurant
-        fiche.  Resolve from the fiche on every coordinator cycle so existing
+        fiche. Resolve from the fiche on every coordinator cycle so existing
         entries self-heal without delete/recreate.
         """
         try:
@@ -84,18 +91,62 @@ class RadisLaToqueCoordinator(DataUpdateCoordinator[WeeklyMenu | None]):
                 old_code,
                 current_code,
             )
+
         return self.code
 
     async def _async_update_data(self) -> WeeklyMenu | None:
+        """Refresh the menu and keep a minimal diagnostic trail."""
+        self.last_attempt = dt_util.now()
+        previous_data = self.data
+
+        _LOGGER.debug(
+            "Refreshing Radis la Toque menu for %s (%s)",
+            self.restaurant_name,
+            self.restaurant_id,
+        )
+
         try:
             code = await self._async_resolve_current_code()
-            return await self.client.async_get_menu(
+            menu = await self.client.async_get_menu(
                 code,
                 self.restaurant_name,
                 today=dt_util.now().date(),
             )
         except MenuNotAvailable:
             # A missing menu is a valid service state (holidays / no publication).
+            self.last_successful_update = dt_util.now()
+            self.last_result = "menu_not_available"
+            _LOGGER.debug(
+                "No Radis la Toque menu currently published for %s (%s)",
+                self.restaurant_name,
+                self.restaurant_id,
+            )
             return None
         except (CannotConnect, InvalidPdf, MenuParseError) as err:
+            # DataUpdateCoordinator handles the error/recovery logging. Keep
+            # only the diagnostic result here to avoid duplicate warning spam.
+            self.last_result = "update_failed"
             raise UpdateFailed(str(err)) from err
+
+        self.last_successful_update = dt_util.now()
+
+        if previous_data is not None and menu == previous_data:
+            self.last_result = "menu_unchanged"
+            _LOGGER.debug(
+                "Radis la Toque menu unchanged for %s (%s): %d day(s)",
+                self.restaurant_name,
+                self.restaurant_id,
+                len(menu.days),
+            )
+        else:
+            self.last_result = "menu_updated"
+            _LOGGER.debug(
+                "Radis la Toque menu updated for %s (%s): %d day(s), parser=%s, score=%s",
+                self.restaurant_name,
+                self.restaurant_id,
+                len(menu.days),
+                menu.parser_kind or "unknown",
+                menu.parser_score if menu.parser_score is not None else "unknown",
+            )
+
+        return menu

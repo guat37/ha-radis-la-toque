@@ -32,12 +32,14 @@ def _normalize_semantic(value: str) -> str:
     """Normalize a menu item for conservative semantic matching."""
     import re
     import unicodedata
+
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().casefold()
     return re.sub(r"\s+", " ", value).strip()
 
 
 def _contains_term(haystack: str, term: str) -> bool:
     import re
+
     token = _normalize_semantic(term)
     return re.search(rf"(?<!\w){re.escape(token)}(?!\w)", haystack) is not None
 
@@ -45,6 +47,7 @@ def _contains_term(haystack: str, term: str) -> bool:
 def _semantic_labels(name: str, category: MenuCategory) -> list[str]:
     """Derive generic labels after parsing, never affecting parser success."""
     import re
+
     n = _normalize_semantic(name)
     labels: list[str] = []
 
@@ -52,32 +55,71 @@ def _semantic_labels(name: str, category: MenuCategory) -> list[str]:
         if label not in labels:
             labels.append(label)
 
-    if re.search(r"\bbio\b", n): add("organic")
-    if re.search(r"\blocal(?:e|es|aux)?\b", n): add("local")
-    if "label rouge" in n: add("label_rouge")
+    if re.search(r"\bbio\b", n):
+        add("organic")
+    if re.search(r"\blocal(?:e|es|aux)?\b", n):
+        add("local")
+    if "label rouge" in n:
+        add("label_rouge")
     for raw in ("aop", "igp", "msc", "hve"):
-        if re.search(rf"\b{raw}\b", n): add(raw)
-    if "fait maison" in n or " maison" in f" {n}": add("home_made")
+        if re.search(rf"\b{raw}\b", n):
+            add(raw)
+    if "fait maison" in n or " maison" in f" {n}":
+        add("home_made")
 
-    meat=("boeuf","veau","porc","poulet","dinde","canard","agneau","jambon","lardon","lardons","saucisse","chipolata","chipolatas","merguez","palette","steak","hachis","salami","mortadelle","chorizo")
-    fish=("poisson","colin","saumon","thon","cabillaud","merlu","lieu","haddock","sardine","maquereau","calamar","calamars","crevette","crevettes")
-    eggs=("oeuf","oeufs","omelette")
-    dairy=("lait","yaourt","yogourt","fromage","camembert","coulommiers","chanteneige","cantadou","saint paulin","montcadi","parmesan","mozzarella","emmental","comte","chevre","brique de vache","buchette laitiere","creme dessert","fromage blanc")
-    fruits=("pomme","pommes","poire","poires","banane","bananes","raisin","raisins","melon","pasteque","ananas","prune","prunes","orange","oranges","kiwi","kiwis","peche","abricot","abricots","cerise","cerises","fraise","fraises","compote","puree de pommes")
-    vegetables=("carotte","carottes","courgette","courgettes","concombre","concombres","haricot vert","haricots verts","tomate","tomates","celeri","chou","brocoli","brocolis","epinard","salade verte","betterave","poireau","poireaux","ratatouille")
-    starch=("riz","pates","semoule","couscous","quinoa","lentille","lentilles","pomme de terre","pommes de terre","puree de pomme de terre","puree de pommes de terre","boulgour","ble","mais","polenta","pain")
-    plant=("vegetal","vegetarien","falafel","billes vegetales")
+    meat = (
+        "boeuf", "veau", "porc", "poulet", "dinde", "canard", "agneau",
+        "jambon", "lardon", "lardons", "saucisse", "chipolata", "chipolatas",
+        "merguez", "palette", "steak", "hachis", "salami", "mortadelle", "chorizo",
+    )
+    fish = (
+        "poisson", "colin", "saumon", "thon", "cabillaud", "merlu", "lieu",
+        "haddock", "sardine", "maquereau", "calamar", "calamars", "crevette", "crevettes",
+    )
+    eggs = ("oeuf", "oeufs", "omelette")
+    dairy = (
+        "lait", "yaourt", "yogourt", "fromage", "camembert", "coulommiers",
+        "chanteneige", "cantadou", "saint paulin", "montcadi", "parmesan",
+        "mozzarella", "emmental", "comte", "chevre", "brique de vache",
+        "buchette laitiere", "creme dessert", "fromage blanc",
+    )
+    fruits = (
+        "pomme", "pommes", "poire", "poires", "banane", "bananes", "raisin",
+        "raisins", "melon", "pasteque", "ananas", "prune", "prunes", "orange",
+        "oranges", "kiwi", "kiwis", "peche", "abricot", "abricots", "cerise",
+        "cerises", "fraise", "fraises", "compote", "puree de pommes",
+    )
+    vegetables = (
+        "carotte", "carottes", "courgette", "courgettes", "concombre", "concombres",
+        "haricot vert", "haricots verts", "tomate", "tomates", "celeri", "chou",
+        "brocoli", "brocolis", "epinard", "salade verte", "betterave", "poireau",
+        "poireaux", "ratatouille",
+    )
+    starch = (
+        "riz", "pates", "semoule", "couscous", "quinoa", "lentille", "lentilles",
+        "pomme de terre", "pommes de terre", "puree de pomme de terre",
+        "puree de pommes de terre", "boulgour", "ble", "mais", "polenta", "pain",
+    )
+    plant = ("vegetal", "vegetarien", "falafel", "billes vegetales")
 
-    dairy_text=re.sub(r"(?<!\w)lait de coco(?!\w)", " ", n)
-    if category == MenuCategory.DAIRY or any(_contains_term(dairy_text,t) for t in dairy): add("dairy")
-    if any(_contains_term(n,t) for t in meat): add("meat")
-    if any(_contains_term(n,t) for t in fish): add("fish")
-    if any(_contains_term(n,t) for t in eggs): add("egg")
-    if any(_contains_term(n,t) for t in plant): add("plant_based")
-    fruit_text=re.sub(r"(?<!\w)pommes? de terre(?!\w)", " ", n)
-    if any(_contains_term(fruit_text,t) for t in fruits): add("fruit")
-    if any(_contains_term(n,t) for t in vegetables): add("vegetable")
-    if any(_contains_term(n,t) for t in starch): add("starch")
+    dairy_text = re.sub(r"(?<!\w)lait de coco(?!\w)", " ", n)
+    if category == MenuCategory.DAIRY or any(_contains_term(dairy_text, t) for t in dairy):
+        add("dairy")
+    if any(_contains_term(n, t) for t in meat):
+        add("meat")
+    if any(_contains_term(n, t) for t in fish):
+        add("fish")
+    if any(_contains_term(n, t) for t in eggs):
+        add("egg")
+    if any(_contains_term(n, t) for t in plant):
+        add("plant_based")
+    fruit_text = re.sub(r"(?<!\w)pommes? de terre(?!\w)", " ", n)
+    if any(_contains_term(fruit_text, t) for t in fruits):
+        add("fruit")
+    if any(_contains_term(n, t) for t in vegetables):
+        add("vegetable")
+    if any(_contains_term(n, t) for t in starch):
+        add("starch")
     return labels
 
 
@@ -114,7 +156,6 @@ def display_week(menu: WeeklyMenu | None, today: date) -> tuple[DayMenu, ...]:
     """
     if menu is None or not menu.days:
         return ()
-
     days = tuple(sorted(menu.days, key=lambda day: day.menu_date))
     monday = today - timedelta(days=today.weekday())
     current_end = monday + timedelta(days=7)
@@ -122,7 +163,6 @@ def display_week(menu: WeeklyMenu | None, today: date) -> tuple[DayMenu, ...]:
 
     if today.weekday() < 5 and current:
         return current
-
     future = tuple(day for day in days if day.menu_date > today)
     if future:
         next_monday = future[0].menu_date - timedelta(days=future[0].menu_date.weekday())
@@ -131,7 +171,6 @@ def display_week(menu: WeeklyMenu | None, today: date) -> tuple[DayMenu, ...]:
 
     if current:
         return current
-
     last = days[-1].menu_date
     last_monday = last - timedelta(days=last.weekday())
     last_end = last_monday + timedelta(days=7)
@@ -168,3 +207,37 @@ def menu_description(day: DayMenu) -> str:
             icon = _CATEGORY_ICONS[category]
             lines.append(f"{icon} " + " / ".join(values))
     return "\n".join(lines)
+
+
+def menu_category_text(
+    day: DayMenu,
+    category: MenuCategory,
+    *,
+    max_length: int | None = None,
+) -> str:
+    """Build a compact state value for one menu category.
+
+    Multiple choices are kept in source order and separated with `` / ``.
+    The optional limit makes the result safe for Home Assistant entity states.
+    """
+    text = " / ".join(day.items_by_category(category))
+    if max_length is None or len(text) <= max_length:
+        return text
+    if max_length <= 1:
+        return text[:max_length]
+    return text[: max_length - 1].rstrip() + "…"
+
+
+def menu_widget_text(day: DayMenu, *, max_length: int | None = None) -> str:
+    """Build widget-friendly text and optionally cap it to a HA state length.
+
+    The full value is intended for the ``widget_text`` state attribute.  The
+    optional limit is used by the dedicated widget sensor because Home
+    Assistant entity states must remain compact.
+    """
+    text = menu_description(day) or menu_summary(day)
+    if max_length is None or len(text) <= max_length:
+        return text
+    if max_length <= 1:
+        return text[:max_length]
+    return text[: max_length - 1].rstrip() + "…"

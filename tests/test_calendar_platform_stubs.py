@@ -67,7 +67,10 @@ entity_mod = types.ModuleType("custom_components.radis_la_toque.entity")
 class RadisLaToqueEntity:
     def __init__(self, coordinator):
         self.coordinator = coordinator
+class RadisLaToqueDateAwareEntity(RadisLaToqueEntity):
+    pass
 entity_mod.RadisLaToqueEntity = RadisLaToqueEntity
+entity_mod.RadisLaToqueDateAwareEntity = RadisLaToqueDateAwareEntity
 sys.modules[entity_mod.__name__] = entity_mod
 
 calendar = load("custom_components.radis_la_toque.calendar", ROOT / "calendar.py")
