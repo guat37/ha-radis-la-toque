@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+### Fixed
+
+* alignement de `beautifulsoup4` sur la version utilisée par Home Assistant afin de restaurer la compatibilité hassfest.
+
+
 ## 1.0.0
 
 ### Added

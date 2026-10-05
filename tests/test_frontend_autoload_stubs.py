@@ -48,7 +48,7 @@ const = types.ModuleType("custom_components.radis_la_toque.const")
 const.DOMAIN = "radis_la_toque"
 const.FRONTEND_CARD_FILENAME = "radis-la-toque-card.js"
 const.FRONTEND_URL_BASE = "/radis_la_toque"
-const.INTEGRATION_VERSION = "1.0.0"
+const.INTEGRATION_VERSION = "1.0.1"
 sys.modules[const.__name__] = const
 
 spec = importlib.util.spec_from_file_location(
@@ -81,7 +81,7 @@ async def main():
 
     assert len(hass.http.paths) == 1
     assert loaded_urls == [
-        "/radis_la_toque/radis-la-toque-card.js?v=1.0.0"
+        "/radis_la_toque/radis-la-toque-card.js?v=1.0.1"
     ]
 
     print("FRONTEND AUTOLOAD: PASS")

@@ -1,4 +1,4 @@
-const RLT_CARD_VERSION = "1.0.0";
+const RLT_CARD_VERSION = "1.0.1";
 
 const CATEGORY_META = [
   ["starter", "Entrée", "🥗"],
