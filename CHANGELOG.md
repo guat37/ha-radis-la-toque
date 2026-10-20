@@ -1,3 +1,10 @@
+## 1.0.2
+
+### Fixed
+
+* ajout de la traduction anglaise de secours requise par Home Assistant ;
+* déplacement du parsing HTML BeautifulSoup hors de la boucle événementielle afin de ne pas bloquer Home Assistant pendant la recherche des cantines.
+
 # Changelog
 
 ## 1.0.1
