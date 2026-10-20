@@ -79,12 +79,17 @@ class RadisLaToqueClient:
         seed_page = 2
         seed_url = f"{LIST_URL}/page-{seed_page}.html"
         seed_html = await self._get_text(seed_url)
-        seed_restaurants = parse_listing_page(seed_html, seed_url)
+        seed_restaurants = await asyncio.to_thread(
+            parse_listing_page, seed_html, seed_url
+        )
         if not seed_restaurants:
             raise RestaurantNotFound("restaurant_catalog_seed_empty")
 
+        last_catalog_page = await asyncio.to_thread(
+            infer_last_catalog_page, seed_html
+        )
         last_page = min(
-            max(infer_last_catalog_page(seed_html), seed_page),
+            max(last_catalog_page, seed_page),
             MAX_CATALOG_PAGES,
         )
 
@@ -100,7 +105,7 @@ class RadisLaToqueClient:
                     # complete discovery unusable.  This also protects us from
                     # harmless holes if the CMS pagination changes.
                     return []
-                return parse_listing_page(html, url)
+                return await asyncio.to_thread(parse_listing_page, html, url)
 
         # Page 2 is already parsed.  The live catalog starts there; page 1 is
         # intentionally excluded because it redirects to the landing page.
@@ -147,7 +152,8 @@ class RadisLaToqueClient:
         )[:100]
 
     async def async_resolve_restaurant(self, restaurant: Restaurant) -> Restaurant:
-        return parse_restaurant_page(await self._get_text(restaurant.page_url), restaurant)
+        html = await self._get_text(restaurant.page_url)
+        return await asyncio.to_thread(parse_restaurant_page, html, restaurant)
 
     async def async_resolve_code(self, page_url: str) -> str:
         """Resolve the current volatile Rxxxxx menu code from a stable fiche URL."""
